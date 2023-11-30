@@ -39,7 +39,7 @@ def time_variations(time):
 
 
 def process_article(date, title, url, description, location):
-    print(f"{date} - {title} - {url} - {description} - {location}")
+    print(f"scraper.py: {date} - {title} - {url} - {description} - {location}")
     if "Service Update" not in title:
         return
 
@@ -57,7 +57,6 @@ def process_article(date, title, url, description, location):
                 and includes(alert.direction, text)
                 and any(includes(t, text) for t in time_variations(alert.time))
             ):
-                print("SENDING NOTIFICATION FOR", alert)
                 try:
                     database_controller.send_notification(
                         alert.user_id,
@@ -65,12 +64,13 @@ def process_article(date, title, url, description, location):
                         f"{title} - {location} {date} {url}",
                         hash=repr((url, text)),
                     )
+                    print("scraper.py: SENT NOTIFICATION FOR", alert)
                 except sqlalchemy.exc.IntegrityError as error:
                     # check that "UNIQUE constraint failed: notifications.hash" is the error
-                    if "UNIQUE constraint failed: notifications.hash" in str(error):
-                        print("Already sent")
-                    else:
+                    if "UNIQUE constraint failed: notifications.hash" not in str(error):
                         raise error
+                    else:
+                        print("scraper.py: ALREADY SENT NOTIFICATION FOR", alert)
 
 
 def main():

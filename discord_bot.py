@@ -10,6 +10,7 @@ import asyncio
 import re
 import DatabaseController
 import discord.app_commands
+import scraper
 
 database_controller = DatabaseController.DatabaseController("sqlite:///database.db")
 
@@ -23,6 +24,7 @@ class SubscribeClient(discord.Client):
 
         self.prompt_creator_schedule_lock = asyncio.Lock()
         self.send_alerts_lock = asyncio.Lock()
+        self.scrape_lock = asyncio.Lock()
 
         self.tree = discord.app_commands.CommandTree(self)
 
@@ -30,6 +32,7 @@ class SubscribeClient(discord.Client):
         print(f"Logged in as {self.user} (ID: {self.user.id})")
         self.prompt_creator_schedule.start()
         self.send_alerts.start()
+        self.scrape.start()
 
     async def setup_hook(self) -> None:
         self.tree.copy_global_to(guild=TEST_GUILD)
@@ -37,6 +40,10 @@ class SubscribeClient(discord.Client):
 
     @discord.ext.tasks.loop(seconds=15)
     async def prompt_creator_schedule(self):
+        if not self.prompt_creator_schedule_lock.locked():
+            return
+        await self.prompt_creator_schedule_lock.acquire()
+
         content = (
             "Welcome to the Metro Cancellations Bot! This bot will send you a "
             + "DM or a message in a channel when your bus is cancelled. To get "
@@ -46,7 +53,6 @@ class SubscribeClient(discord.Client):
         )
         view = PromptInitial()
 
-        await self.prompt_creator_schedule_lock.acquire()
         channel = self.get_channel(1150695270267486359)
 
         # check if there are any prompts in the channel already
@@ -68,6 +74,9 @@ class SubscribeClient(discord.Client):
 
     @discord.ext.tasks.loop(seconds=15)
     async def send_alerts(self):
+        if not self.send_alerts_lock.locked():
+            return
+        await self.send_alerts_lock.acquire()
         for notification in database_controller.get_pending_notifications():
             message_text = notification.text
 
@@ -160,6 +169,17 @@ class SubscribeClient(discord.Client):
                         heading + message_text,
                     )
                 database_controller.mark_notification_sent(notification.id)
+
+        self.send_alerts_lock.release()
+
+    @discord.ext.tasks.loop(seconds=300)
+    async def scrape(self):
+        if not self.scrape_lock.locked():
+            return
+        await self.scrape_lock.acquire()
+        print("Scraping Metro website")
+        scraper.main()
+        self.scrape_lock.release()
 
 
 def get_alerts_embed(user_id: int) -> discord.Embed:
