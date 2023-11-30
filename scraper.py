@@ -47,10 +47,14 @@ def process_article(date, title, url, description, location):
     soup = bs4.BeautifulSoup(article_content.content, "html.parser")
     article = soup.find("article")
 
+    lines = []
+
     for paragraph in article.findAll("p"):
         # replace \xa0+  with " "
         text = re.sub(r" +", " ", paragraph.text.replace("\xa0", " "))
+        lines += text.split("\n")
 
+    for text in lines:
         for alert in database_controller.get_alerts():
             if (
                 includes("route", text)
