@@ -17,15 +17,12 @@ class Alert(Base):
     direction = sqlalchemy.Column(sqlalchemy.String)
 
     def __repr__(self):
-        return (
-            "<Alert(id='%s', route='%s', time='%s', direction='%s', user_id='%s')>"
-            % (
-                self.id,
-                self.route,
-                self.time,
-                self.direction,
-                self.user_id,
-            )
+        return "<Alert(id=%s, route=%s, time=%s, direction=%s, user_id=%s)>" % (
+            repr(self.id),
+            repr(self.route),
+            repr(self.time),
+            repr(self.direction),
+            repr(self.user_id),
         )
 
 
@@ -39,23 +36,20 @@ class Notification(Base):
     time_created = sqlalchemy.Column(sqlalchemy.DateTime, default=sqlalchemy.func.now())
     time_sent = sqlalchemy.Column(sqlalchemy.DateTime)
 
-    def mark_sent(self):
-        self.sent = True
-        self.time_sent = sqlalchemy.func.now()
-
     # hash must either be none or unique
     __table_args__ = (sqlalchemy.UniqueConstraint("hash", name="unique_hash"),)
 
     def __repr__(self):
         return (
-            "<Notification(id='%s', text='%s', target='%s', sent='%s', time_created='%s', time_sent='%s')>"
+            "<Notification(id=%s, hash=%s, text=%s, recipient=%s, sent=%s, time_created=%s, time_sent=%s)>"
             % (
-                self.id,
-                self.text,
-                self.target,
-                self.sent,
-                self.time_created,
-                self.time_sent,
+                repr(self.id),
+                repr(self.hash),
+                repr(self.text),
+                repr(self.recipient),
+                repr(self.sent),
+                repr(self.time_created),
+                repr(self.time_sent),
             )
         )
 
@@ -71,11 +65,11 @@ class Preference(Base):
     __table_args__ = (sqlalchemy.UniqueConstraint("user_id", "key"),)
 
     def __repr__(self):
-        return "<Preference(id='%s', user_id='%s', key='%s', value='%s')>" % (
-            self.id,
-            self.user_id,
-            self.key,
-            self.value,
+        return "<Preference(id=%s, user_id=%s, key=%s, value=%s)>" % (
+            repr(self.id),
+            repr(self.user_id),
+            repr(self.key),
+            repr(self.value),
         )
 
 
@@ -115,6 +109,15 @@ class DatabaseController:
             )
             session.add(notification)
             session.commit()
+
+    def mark_notification_sent(self, notification_id):
+        with self._session_maker() as session:
+            notification = session.query(Notification).get(notification_id)
+            print("Marking", notification, "as sent")
+            notification.sent = True
+            notification.time_sent = sqlalchemy.func.now()
+            session.commit()
+            print("Marked", notification, "as sent")
 
     def get_pending_notifications(self):
         with self._session_maker() as session:

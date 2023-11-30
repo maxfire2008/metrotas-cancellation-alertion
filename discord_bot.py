@@ -84,7 +84,7 @@ class SubscribeClient(discord.Client):
                 user = await self.fetch_user(notification.recipient)
                 try:
                     await user.send(message_text, embed=message_embed)
-                    notification.mark_sent()
+                    database_controller.mark_notification_sent(notification.id)
                 except discord.errors.Forbidden as e:
                     print(
                         f"Could not send DM to {user.name}#{user.discriminator} ({user.id}) {e}, {type(e)}"
@@ -117,7 +117,7 @@ class SubscribeClient(discord.Client):
                         read_messages=True,
                     )
                 await channel.send(message_text, embed=message_embed)
-                notification.mark_sent()
+                database_controller.mark_notification_sent(notification.id)
 
 
 def get_alerts_embed(user_id: int) -> discord.Embed:
