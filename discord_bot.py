@@ -81,18 +81,17 @@ class SubscribeClient(discord.Client):
                 try:
                     heading_exists = False
                     heading_age = 0
+                    heading = "***" + notification.heading + "***\n"
                     # check the previous messages to see if they have the same heading
                     async for message in user.history(limit=100):
                         if message.author == self.user:
                             # if it starts with the same heading
-                            if message.content.startswith(
-                                "***" + notification.heading + "***\n"
-                            ):
+                            if message.content.startswith(heading):
                                 heading_exists = True
                                 break
                             else:
                                 # check if there is a heading in the message
-                                if re.match(r"\*\*\*.+*\*\*\*", message.content):
+                                if re.findall(r"\*{3}.+\*{3}", message.content):
                                     break
                                 else:
                                     heading_age += 1
@@ -101,7 +100,7 @@ class SubscribeClient(discord.Client):
                         await user.send(message_text)
                     else:
                         await user.send(
-                            "***" + notification.heading + "***\n" + message_text,
+                            heading + message_text,
                         )
 
                     database_controller.mark_notification_sent(notification.id)
@@ -139,18 +138,17 @@ class SubscribeClient(discord.Client):
 
                 heading_exists = False
                 heading_age = 0
+                heading = "***" + notification.heading + "***\n"
                 # check the previous messages to see if they have the same heading
                 async for message in channel.history(limit=100):
                     if message.author == self.user:
                         # if it starts with the same heading
-                        if message.content.startswith(
-                            "***" + notification.heading + "***\n"
-                        ):
+                        if message.content.startswith(heading):
                             heading_exists = True
                             break
                         else:
                             # check if there is a heading in the message
-                            if re.match(r"\*\*\*.+*\*\*\*", message.content):
+                            if re.findall(r"\*{3}.+\*{3}", message.content):
                                 break
                             else:
                                 heading_age += 1
@@ -159,7 +157,7 @@ class SubscribeClient(discord.Client):
                     await channel.send(message_text)
                 else:
                     await channel.send(
-                        "***" + notification.heading + "***\n" + message_text,
+                        heading + message_text,
                     )
                 database_controller.mark_notification_sent(notification.id)
 

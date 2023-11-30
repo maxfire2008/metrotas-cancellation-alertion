@@ -3,6 +3,8 @@ import requests
 import bs4
 import datetime
 import re
+
+import sqlalchemy
 import DatabaseController
 
 
@@ -13,6 +15,27 @@ def includes(a, b):
     if a is None:
         return True
     return a.lower() in b.lower()
+
+
+def time_variations(time):
+    """
+    >>> time_variations("13:00")
+    ['13:00', '1:00', '1300', '100']
+    """
+
+    time_split = time.split(":")
+    try:
+        hour = int(time_split[0])
+        minute = int(time_split[1])
+
+        return [
+            time,
+            time.replace(":", ""),
+            f"{hour}:{minute:02}",
+            f"{hour}:{minute:02}".replace(":", ""),
+        ]
+    except ValueError:
+        return [time, time.replace(":", "")]
 
 
 def process_article(date, title, url, description, location):
@@ -32,12 +55,22 @@ def process_article(date, title, url, description, location):
             if (
                 includes(alert.route, text)
                 and includes(alert.direction, text)
-                and includes(alert.time, text)
+                and any(includes(t, text) for t in time_variations(alert.time))
             ):
                 print("SENDING NOTIFICATION FOR", alert)
-                database_controller.send_notification(
-                    alert.user_id, text, hash=repr((url, text))
-                )
+                try:
+                    database_controller.send_notification(
+                        alert.user_id,
+                        text,
+                        f"{title} - {location} {date} {url}",
+                        hash=repr((url, text)),
+                    )
+                except sqlalchemy.exc.IntegrityError as error:
+                    # check that "UNIQUE constraint failed: notifications.hash" is the error
+                    if "UNIQUE constraint failed: notifications.hash" in str(error):
+                        print("Already sent")
+                    else:
+                        raise error
 
 
 def main():
