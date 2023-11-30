@@ -9,10 +9,10 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 class Alert(Base):
     __tablename__ = "alerts"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    user_id = sqlalchemy.Column(sqlalchemy.Integer)
     route = sqlalchemy.Column(sqlalchemy.String)
     time = sqlalchemy.Column(sqlalchemy.String)
     direction = sqlalchemy.Column(sqlalchemy.String)
-    user_id = sqlalchemy.Column(sqlalchemy.Integer)
 
     def __repr__(self):
         return (
@@ -33,18 +33,26 @@ class Notification(Base):
     hash = sqlalchemy.Column(sqlalchemy.String)
     text = sqlalchemy.Column(sqlalchemy.String)
     sent = sqlalchemy.Column(sqlalchemy.Boolean)
+    time_created = sqlalchemy.Column(sqlalchemy.DateTime, default=sqlalchemy.func.now())
+    time_sent = sqlalchemy.Column(sqlalchemy.DateTime)
 
     def mark_sent(self):
         self.sent = True
+        self.time_sent = sqlalchemy.func.now()
 
     # hash must either be none or unique
     __table_args__ = (sqlalchemy.UniqueConstraint("hash", name="unique_hash"),)
 
     def __repr__(self):
-        return "<Notification(id='%s', alert='%s', sent='%s')>" % (
-            self.id,
-            self.alert,
-            self.sent,
+        return (
+            "<Notification(id='%s', alert='%s', sent='%s', time_created='%s', time_sent='%s')>"
+            % (
+                self.id,
+                self.alert,
+                self.sent,
+                self.time_created,
+                self.time_sent,
+            )
         )
 
 
@@ -52,7 +60,6 @@ class Preference(Base):
     __tablename__ = "preferences"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     user_id = sqlalchemy.Column(sqlalchemy.Integer)
-    user = sqlalchemy.orm.relationship("User", backref="preferences")
     key = sqlalchemy.Column(sqlalchemy.String)
     value = sqlalchemy.Column(sqlalchemy.String)
 
@@ -71,6 +78,7 @@ class Preference(Base):
 class DatabaseController:
     def __init__(self, connection_string):
         engine = sqlalchemy.create_engine(connection_string)
+        Base.metadata.create_all(engine)
         self._session_maker = sqlalchemy.orm.sessionmaker(bind=engine)
 
     def get_user_preference(self, user_id, key):
@@ -102,14 +110,33 @@ class DatabaseController:
 
     def get_pending_notifications(self):
         with self._session_maker() as session:
-            return (
-                session.query(Notification)
-                .filter(Notification.sent == False)
-                .join(Alert)
-                .filter(Alert.time == "now")
-                .all()
+            return list(
+                session.query(Notification).filter(Notification.sent == False).all()
             )
-    
-    def get_alerts(user_id):
+
+    def new_alert(self, user_id, route, time, direction):
         with self._session_maker() as session:
-            
+            alert = Alert(user_id=user_id, route=route, time=time, direction=direction)
+            session.add(alert)
+            session.commit()
+
+    def delete_alert(self, user_id, alert_id):
+        with self._session_maker() as session:
+            # if the user_id matches
+            alert = (
+                session.query(Alert)
+                .filter(Alert.user_id == user_id)
+                .filter(Alert.id == alert_id)
+                .first()
+            )
+
+            if alert:
+                session.delete(alert)
+                session.commit()
+                return True
+            else:
+                return False
+
+    def get_alerts(self, user_id):
+        with self._session_maker() as session:
+            return session.query(Alert).filter(Alert.user_id == user_id).all()

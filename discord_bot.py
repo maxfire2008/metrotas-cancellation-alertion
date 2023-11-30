@@ -7,10 +7,10 @@ import discord.ext.tasks
 import discord.ext.commands
 import sys
 import asyncio
-import DatabaseController
+from DatabaseController import DatabaseController
 import discord.app_commands
 
-database_controller = DatabaseController("sqlite://database.db")
+database_controller = DatabaseController("sqlite:///database.db")
 
 TEST_GUILD = discord.Object(1150694755618009168)
 
@@ -127,9 +127,29 @@ def get_alerts_embed(user_id: int) -> discord.Embed:
         color=discord.Color.yellow(),
     )
     for alert in database_controller.get_alerts(user_id):
+        message = ""
+        if alert.route:
+            message += f"The"
+            if alert.direction:
+                message += f" {alert.direction}bound"
+            message += f" {alert.route}"
+        else:
+            message += "Any"
+            if alert.direction:
+                message += f" {alert.direction}bound"
+            message += " bus"
+
+        if alert.time:
+            message += f" at {alert.time}"
+        else:
+            message += " at any time"
+
+        if not alert.direction:
+            message += ", inbound or outbound"
+
         response_embed.add_field(
-            name=f"ID: {alert['id']}",
-            value=f"{alert['route_number']} at {alert['departure_time']} in the {alert['direction']} direction",
+            name=f"ID: {alert.id}",
+            value=message,
             inline=False,
         )
     return response_embed
@@ -137,37 +157,36 @@ def get_alerts_embed(user_id: int) -> discord.Embed:
 
 class NewAlert(discord.ui.Modal, title="New Alert"):
     route_number = discord.ui.TextInput(
-        label="Route Number (required)", placeholder='E.G. "X50", "502"'
+        label="Route Number",
+        placeholder='E.G. "X50", "502"',
+        required=False,
     )
 
     originate_time = discord.ui.TextInput(
         label="Origin Departure Time (24-hour time)",
         placeholder='E.G. "13:12", "21:27"',
+        required=False,
     )
 
     direction = discord.ui.TextInput(
         label="Direction",
         placeholder='Write "IN" or "OUT"',
+        required=False,
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        if (
-            self.route_number.value == ""
-            or self.originate_time.value == ""
-            or self.direction.value == ""
-        ):
-            await interaction.response.send_message(
-                "Please fill out all fields.", ephemeral=True
-            )
-            return
-        if self.direction.value.lower() not in ["in", "out"]:
+        if self.direction.value.lower() not in ["in", "out", ""]:
             await interaction.response.send_message(
                 'Please write "IN" or "OUT" for the direction.', ephemeral=True
             )
             return
-        if self.originate_time.value.count(":") != 1:
+        if (
+            self.originate_time.value != ""
+            and self.originate_time.value.count(":") != 1
+        ):
             await interaction.response.send_message(
-                "Please write the origination time in the format HH:MM.", ephemeral=True
+                "Please write the origination time in the format HH:MM (24-hour).",
+                ephemeral=True,
             )
             return
         if self.route_number.value.startswith("2"):
@@ -175,7 +194,7 @@ class NewAlert(discord.ui.Modal, title="New Alert"):
                 "School routes are extremly unlikely to be listed in the cancellations list on Metro's site, expect this to be inaccurate.",
                 ephemeral=True,
             )
-        database_controller.add_alert(
+        database_controller.new_alert(
             interaction.user.id,
             self.route_number.value,
             self.originate_time.value,
