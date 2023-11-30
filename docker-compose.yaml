@@ -1,0 +1,11 @@
+version: "3.3"
+
+services:
+  metrotas-cancellation-alertion:
+    restart: always
+    image: ghcr.io/maxfire2008/metrotas-cancellation-alertion:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./database.db:/app/database.db
