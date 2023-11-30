@@ -1,3 +1,5 @@
+import os
+import time
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.ext.declarative
@@ -32,7 +34,8 @@ class Notification(Base):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     hash = sqlalchemy.Column(sqlalchemy.String)
     text = sqlalchemy.Column(sqlalchemy.String)
-    sent = sqlalchemy.Column(sqlalchemy.Boolean)
+    recipient = sqlalchemy.Column(sqlalchemy.String)
+    sent = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
     time_created = sqlalchemy.Column(sqlalchemy.DateTime, default=sqlalchemy.func.now())
     time_sent = sqlalchemy.Column(sqlalchemy.DateTime)
 
@@ -45,10 +48,11 @@ class Notification(Base):
 
     def __repr__(self):
         return (
-            "<Notification(id='%s', alert='%s', sent='%s', time_created='%s', time_sent='%s')>"
+            "<Notification(id='%s', text='%s', target='%s', sent='%s', time_created='%s', time_sent='%s')>"
             % (
                 self.id,
-                self.alert,
+                self.text,
+                self.target,
                 self.sent,
                 self.time_created,
                 self.time_sent,
@@ -102,9 +106,13 @@ class DatabaseController:
                 {"value": value}
             )
 
-    def send_notification(self, hash, text):
+    def send_notification(self, recipient, text, hash=None):
+        if hash is None:
+            hash = repr((time.time(), os.urandom(128)))
         with self._session_maker() as session:
-            notification = Notification(hash=hash, text=text)
+            notification = Notification(
+                hash=hash, text=text, recipient=recipient, sent=False
+            )
             session.add(notification)
             session.commit()
 

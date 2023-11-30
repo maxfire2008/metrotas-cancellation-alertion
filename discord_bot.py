@@ -93,7 +93,7 @@ class SubscribeClient(discord.Client):
                         notification["user_id"], "delivery_method", "discord_channel"
                     )
                     database_controller.send_notification(
-                        repr((time.time(), os.urandom(128))),
+                        notification["user_id"],
                         "Your preferred delivery method has been set to Discord channel because you could not receive DMs from mutual server members.",
                     )
             else:
@@ -226,11 +226,8 @@ class DeliveryMethodMenu(discord.ui.View):
         database_controller.set_user_preference(
             interaction.user.id, "delivery_method", "discord_DM"
         )
-        database_controller.send_mail(
+        database_controller.send_notification(
             interaction.user.id,
-            None,
-            None,
-            None,
             "Your preferred delivery method has been set to Discord DM.",
         )
         await interaction.response.send_message(
@@ -245,11 +242,8 @@ class DeliveryMethodMenu(discord.ui.View):
         database_controller.set_user_preference(
             interaction.user.id, "delivery_method", "discord_channel"
         )
-        database_controller.send_mail(
+        database_controller.send_notification(
             interaction.user.id,
-            None,
-            None,
-            None,
             "Your preferred delivery method has been set to Discord channel.",
         )
         await interaction.response.send_message(
@@ -277,7 +271,10 @@ class Prompt(discord.ui.View):
     async def test_alert(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
-        database_controller.test_mail(interaction.user.id)
+        database_controller.send_notification(
+            interaction.user.id,
+            "This is a test alert.",
+        )
         await interaction.response.send_message(
             "Test alert sent. If you do not receive it, check that you can receive DMs from mutual server members.",
             embed=get_alerts_embed(interaction.user.id),
