@@ -1,6 +1,4 @@
 import datetime
-import os
-import time
 import traceback
 import discord
 import discord.ext.tasks
@@ -40,7 +38,7 @@ class SubscribeClient(discord.Client):
 
     @discord.ext.tasks.loop(seconds=15)
     async def prompt_creator_schedule(self):
-        if not self.prompt_creator_schedule_lock.locked():
+        if self.prompt_creator_schedule_lock.locked():
             return
         await self.prompt_creator_schedule_lock.acquire()
 
@@ -81,7 +79,7 @@ Notifications can be delivered via a channel in the Discord guild (server), or v
 
     @discord.ext.tasks.loop(seconds=15)
     async def send_alerts(self):
-        if not self.send_alerts_lock.locked():
+        if self.send_alerts_lock.locked():
             return
         await self.send_alerts_lock.acquire()
         for notification in database_controller.get_pending_notifications():
@@ -181,7 +179,7 @@ Notifications can be delivered via a channel in the Discord guild (server), or v
 
     @discord.ext.tasks.loop(seconds=300)
     async def scrape(self):
-        if not self.scrape_lock.locked():
+        if self.scrape_lock.locked():
             return
         await self.scrape_lock.acquire()
         print("Scraping Metro website")

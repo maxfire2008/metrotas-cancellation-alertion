@@ -117,11 +117,9 @@ class DatabaseController:
     def mark_notification_sent(self, notification_id):
         with self._session_maker() as session:
             notification = session.query(Notification).get(notification_id)
-            print("Marking", notification, "as sent")
             notification.sent = True
             notification.time_sent = sqlalchemy.func.now()
             session.commit()
-            print("Marked", notification, "as sent")
 
     def get_pending_notifications(self):
         with self._session_maker() as session:

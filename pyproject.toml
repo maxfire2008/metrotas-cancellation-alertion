@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "metrotas-cancellation-alertion"
+version = "0.1.0"
+description = ""
+authors = ["maxfire2008 <22722054+maxfire2008@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "metrotas_cancellation_alertion"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+"discord.py" = "^2.3.2"
+sqlalchemy = "^2.0.23"
+requests = "^2.31.0"
+beautifulsoup4 = "^4.12.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
