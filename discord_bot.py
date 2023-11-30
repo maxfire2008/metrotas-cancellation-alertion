@@ -7,10 +7,11 @@ import discord.ext.tasks
 import discord.ext.commands
 import sys
 import asyncio
-from DatabaseController import DatabaseController
+import re
+import DatabaseController
 import discord.app_commands
 
-database_controller = DatabaseController("sqlite:///database.db")
+database_controller = DatabaseController.DatabaseController("sqlite:///database.db")
 
 TEST_GUILD = discord.Object(1150694755618009168)
 
@@ -69,11 +70,6 @@ class SubscribeClient(discord.Client):
     async def send_alerts(self):
         for notification in database_controller.get_pending_notifications():
             message_text = notification.text
-            message_embed = discord.Embed(
-                title=notification.text,
-                description="",
-                color=discord.Color.red(),
-            )
 
             if (
                 database_controller.get_user_preference(
@@ -83,7 +79,31 @@ class SubscribeClient(discord.Client):
             ):
                 user = await self.fetch_user(notification.recipient)
                 try:
-                    await user.send(message_text, embed=message_embed)
+                    heading_exists = False
+                    heading_age = 0
+                    # check the previous messages to see if they have the same heading
+                    async for message in user.history(limit=100):
+                        if message.author == self.user:
+                            # if it starts with the same heading
+                            if message.content.startswith(
+                                "***" + notification.heading + "***\n"
+                            ):
+                                heading_exists = True
+                                break
+                            else:
+                                # check if there is a heading in the message
+                                if re.match(r"\*\*\*.+*\*\*\*", message.content):
+                                    break
+                                else:
+                                    heading_age += 1
+
+                    if heading_exists:
+                        await user.send(message_text)
+                    else:
+                        await user.send(
+                            "***" + notification.heading + "***\n" + message_text,
+                        )
+
                     database_controller.mark_notification_sent(notification.id)
                 except discord.errors.Forbidden as e:
                     print(
@@ -116,7 +136,31 @@ class SubscribeClient(discord.Client):
                         user,
                         read_messages=True,
                     )
-                await channel.send(message_text, embed=message_embed)
+
+                heading_exists = False
+                heading_age = 0
+                # check the previous messages to see if they have the same heading
+                async for message in channel.history(limit=100):
+                    if message.author == self.user:
+                        # if it starts with the same heading
+                        if message.content.startswith(
+                            "***" + notification.heading + "***\n"
+                        ):
+                            heading_exists = True
+                            break
+                        else:
+                            # check if there is a heading in the message
+                            if re.match(r"\*\*\*.+*\*\*\*", message.content):
+                                break
+                            else:
+                                heading_age += 1
+
+                if heading_exists:
+                    await channel.send(message_text)
+                else:
+                    await channel.send(
+                        "***" + notification.heading + "***\n" + message_text,
+                    )
                 database_controller.mark_notification_sent(notification.id)
 
 

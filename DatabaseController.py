@@ -30,6 +30,7 @@ class Notification(Base):
     __tablename__ = "notifications"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     hash = sqlalchemy.Column(sqlalchemy.String)
+    heading = sqlalchemy.Column(sqlalchemy.String)
     text = sqlalchemy.Column(sqlalchemy.String)
     recipient = sqlalchemy.Column(sqlalchemy.String)
     sent = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
@@ -41,10 +42,11 @@ class Notification(Base):
 
     def __repr__(self):
         return (
-            "<Notification(id=%s, hash=%s, text=%s, recipient=%s, sent=%s, time_created=%s, time_sent=%s)>"
+            "<Notification(id=%s, hash=%s, heading=%s, text=%s, recipient=%s, sent=%s, time_created=%s, time_sent=%s)>"
             % (
                 repr(self.id),
                 repr(self.hash),
+                repr(self.heading),
                 repr(self.text),
                 repr(self.recipient),
                 repr(self.sent),
@@ -100,12 +102,14 @@ class DatabaseController:
                 {"value": value}
             )
 
-    def send_notification(self, recipient, text, hash=None):
+    def send_notification(self, recipient, text, heading=None, hash=None):
         if hash is None:
             hash = repr((time.time(), os.urandom(128)))
+        if heading is None:
+            heading = "General Alert"
         with self._session_maker() as session:
             notification = Notification(
-                hash=hash, text=text, recipient=recipient, sent=False
+                hash=hash, text=text, recipient=recipient, heading=heading, sent=False
             )
             session.add(notification)
             session.commit()
@@ -148,6 +152,9 @@ class DatabaseController:
             else:
                 return False
 
-    def get_alerts(self, user_id):
+    def get_alerts(self, user_id=None):
         with self._session_maker() as session:
-            return session.query(Alert).filter(Alert.user_id == user_id).all()
+            if user_id:
+                return session.query(Alert).filter(Alert.user_id == user_id).all()
+            else:
+                return session.query(Alert).all()
