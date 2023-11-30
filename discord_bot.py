@@ -45,10 +45,17 @@ class SubscribeClient(discord.Client):
         await self.prompt_creator_schedule_lock.acquire()
 
         content = (
-            "Welcome to the Metro Cancellations Bot! This bot will send you a "
-            + "DM or a message in a channel when your bus is cancelled. To get "
-            + "started, click the button below to create an alert.\n\n"
-            + "**TO DELETE AN EVENT USE THE /delete_alert command.**\n"
+            """# MetroTas Cancellation Alerts
+:warning: Make sure to read the instructions in full before using.
+
+## Creating alerts
+To create an alert, use the "Create Alert" button below. You can leave fields blank to not use it for matches. i.e. if you want to match *all* X42 buses, don't fill in the time or direction.
+
+## Deleting alerts
+Simply use the /delete_alert command with the alert ID. You can find the alert ID by listing your alerts with the button below.
+
+## Delivery methods
+Notifications can be delivered via a channel in the Discord guild (server), or via DMs. If you want to use DMs make sure to enable DMs from guild (server) members in the guild (server) settings.\n"""
             + f"Updated at {datetime.datetime.now()}"
         )
         view = PromptInitial()

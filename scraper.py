@@ -53,7 +53,8 @@ def process_article(date, title, url, description, location):
 
         for alert in database_controller.get_alerts():
             if (
-                includes(alert.route, text)
+                includes("route", text)
+                and includes(alert.route, text)
                 and includes(alert.direction, text)
                 and any(includes(t, text) for t in time_variations(alert.time))
             ):
