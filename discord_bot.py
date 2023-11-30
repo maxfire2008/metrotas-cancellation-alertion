@@ -77,11 +77,11 @@ class SubscribeClient(discord.Client):
 
             if (
                 database_controller.get_user_preference(
-                    notification["user_id"], "delivery_method"
+                    notification.recipient, "delivery_method"
                 )
                 == "discord_DM"
             ):
-                user = await self.fetch_user(notification["user_id"])
+                user = await self.fetch_user(notification.recipient)
                 try:
                     await user.send(message_text, embed=message_embed)
                     notification.mark_sent()
@@ -90,15 +90,15 @@ class SubscribeClient(discord.Client):
                         f"Could not send DM to {user.name}#{user.discriminator} ({user.id}) {e}, {type(e)}"
                     )
                     database_controller.set_user_preference(
-                        notification["user_id"], "delivery_method", "discord_channel"
+                        notification.recipient, "delivery_method", "discord_channel"
                     )
                     database_controller.send_notification(
-                        notification["user_id"],
+                        notification.recipient,
                         "Your preferred delivery method has been set to Discord channel because you could not receive DMs from mutual server members.",
                     )
             else:
                 # get channel that has name "notification_delivery_{user_id}"
-                channel_name = f"notification_delivery_{notification['user_id']}"
+                channel_name = f"notification_delivery_{notification.recipient}"
                 channel = discord.utils.get(self.get_all_channels(), name=channel_name)
                 if channel is None:
                     # create channel
@@ -111,7 +111,7 @@ class SubscribeClient(discord.Client):
                         read_messages=False,
                     )
                     # get user object
-                    user = await self.fetch_user(int(notification["user_id"]))
+                    user = await self.fetch_user(int(notification.recipient))
                     await channel.set_permissions(
                         user,
                         read_messages=True,
@@ -277,7 +277,6 @@ class Prompt(discord.ui.View):
         )
         await interaction.response.send_message(
             "Test alert sent. If you do not receive it, check that you can receive DMs from mutual server members.",
-            embed=get_alerts_embed(interaction.user.id),
             view=Prompt(),
             ephemeral=True,
         )
