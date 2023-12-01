@@ -31,6 +31,11 @@ class SubscribeClient(discord.Client):
         self.prompt_creator_schedule.start()
         self.send_alerts.start()
         self.scrape.start()
+        await self.change_presence(
+            activity=discord.Activity(
+                type=discord.ActivityType.watching, name="for cancellations"
+            )
+        )
 
     async def setup_hook(self) -> None:
         self.tree.copy_global_to(guild=TEST_GUILD)
@@ -53,7 +58,12 @@ To create an alert, use the "Create Alert" button below. You can leave fields bl
 Simply use the /delete_alert command with the alert ID. You can find the alert ID by listing your alerts with the button below.
 
 ## Delivery methods
-Notifications can be delivered via a channel in the Discord guild (server), or via DMs. If you want to use DMs make sure to enable DMs from guild (server) members in the guild (server) settings.\n"""
+Notifications can be delivered via a channel in the Discord guild (server), or via DMs. If you want to use DMs make sure to enable DMs from guild (server) members in the guild (server) settings.
+
+## About me
+I created this bot to help me know when my bus is delayed.
+I'm available for freelance work. [Check out my resume](https://mburgess.au/resume)!
+You can also checkout my [personal website](https://maxstuff.net) or my [YouTube channel](https://maxstuff.net/youtube)\n"""
             + f"Updated at {datetime.datetime.now()}"
         )
         view = PromptInitial()
