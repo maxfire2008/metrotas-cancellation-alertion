@@ -41,7 +41,7 @@ class SubscribeClient(discord.Client):
         self.tree.copy_global_to(guild=TEST_GUILD)
         await self.tree.sync(guild=TEST_GUILD)
 
-    @discord.ext.tasks.loop(seconds=15)
+    @discord.ext.tasks.loop(seconds=60)
     async def prompt_creator_schedule(self):
         if self.prompt_creator_schedule_lock.locked():
             return
@@ -62,8 +62,8 @@ Notifications can be delivered via a channel in the Discord guild (server), or v
 
 ## About me
 I created this bot to help me know when my bus is delayed.
-I'm available for freelance work. [Check out my resume](https://mburgess.au/resume)!
-You can also checkout my [personal website](https://maxstuff.net) or my [YouTube channel](https://maxstuff.net/youtube)\n"""
+I'm available for freelance work. [Check out my resume](<https://mburgess.au/resume>)!
+You can also checkout my [personal website](<https://maxstuff.net>) or my [YouTube channel](<https://maxstuff.net/youtube>)\n"""
             + f"Updated at {datetime.datetime.now()}"
         )
         view = PromptInitial()
