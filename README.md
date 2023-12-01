@@ -12,3 +12,8 @@ Simply use the /delete_alert command with the alert ID. You can find the alert I
 
 ## Delivery methods
 Notifications can be delivered via a channel in the Discord guild (server), or via DMs. If you want to use DMs make sure to enable DMs from guild (server) members in the guild (server) settings.
+
+## About me
+I created this bot to help me know when my bus is delayed.
+I'm available for freelance work. [Check out my resume](https://mburgess.au/resume)!
+You can also checkout my [personal website](https://maxstuff.net) or my [YouTube channel](https://maxstuff.net/youtube)
