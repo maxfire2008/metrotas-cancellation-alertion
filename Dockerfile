@@ -18,4 +18,4 @@ RUN poetry config virtualenvs.create false \
 
 COPY . /app
 
-CMD [ "python3", "discord_bot.py", "${TOKEN}" ]
+CMD python3 discord_boy.py "$TOKEN"
