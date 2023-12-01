@@ -64,7 +64,7 @@ Notifications can be delivered via a channel in the Discord guild (server), or v
 I created this bot to help me know when my bus is delayed.
 I'm available for freelance work. [Check out my resume](<https://mburgess.au/resume>)!
 You can also checkout my [personal website](<https://maxstuff.net>) or my [YouTube channel](<https://maxstuff.net/youtube>)\n"""
-            + f"Updated at {datetime.datetime.now()}"
+            + f"*Updated at {datetime.datetime.now()}*"
         )
         view = PromptInitial()
 
