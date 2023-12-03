@@ -49,7 +49,7 @@ class SubscribeClient(discord.Client):
 
         content = (
             """# MetroTas Cancellation Alerts
-:warning: Make sure to read the instructions in full before using.
+:warning: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR FAILURE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## Creating alerts
 To create an alert, use the "Create Alert" button below. You can leave fields blank to not use it for matches. i.e. if you want to match *all* X42 buses, don't fill in the time or direction.
@@ -63,7 +63,9 @@ Notifications can be delivered via a channel in the Discord guild (server), or v
 ## About me
 I created this bot to help me know when my bus is delayed.
 I'm available for freelance work. [Check out my resume](<https://mburgess.au/resume>)!
-You can also checkout my [personal website](<https://maxstuff.net>) or my [YouTube channel](<https://maxstuff.net/youtube>)\n"""
+You can also checkout my [personal website](<https://maxstuff.net>) or my [YouTube channel](<https://maxstuff.net/youtube>)
+
+:warning: Make sure to read this message in full before use.\n"""
             + f"*Updated at {datetime.datetime.now()}*"
         )
         view = PromptInitial()
