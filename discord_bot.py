@@ -58,12 +58,15 @@ To create an alert, use the "Create Alert" button below. You can leave fields bl
 Simply use the /delete_alert command with the alert ID. You can find the alert ID by listing your alerts with the button below.
 
 ## Delivery methods
-Notifications can be delivered via a channel in the Discord guild (server), or via DMs. If you want to use DMs make sure to enable DMs from guild (server) members in the guild (server) settings.
+Notifications can be delivered via a channel in the Discord server, or via DMs. If you want to use DMs make sure to enable DMs from server members in the server settings.
 
 ## About me
 I created this bot to help me know when my bus is delayed.
 I'm available for freelance work. [Check out my resume](<https://mburgess.au/resume>)!
 You can also checkout my [personal website](<https://maxstuff.net>) or my [YouTube channel](<https://maxstuff.net/youtube>)
+
+## Support
+Please get in touch with me@maxstuff.net or <@375884848294002689> if you need any help.
 
 :warning: Make sure to read this message in full before use.\n"""
             + f"*Updated at {datetime.datetime.now()}*"
@@ -101,47 +104,8 @@ You can also checkout my [personal website](<https://maxstuff.net>) or my [YouTu
                 database_controller.get_user_preference(
                     notification.recipient, "delivery_method"
                 )
-                == "discord_DM"
+                == "discord_channel"
             ):
-                user = await self.fetch_user(notification.recipient)
-                try:
-                    heading_exists = False
-                    heading_age = 0
-                    heading = "***" + notification.heading + "***\n"
-                    # check the previous messages to see if they have the same heading
-                    async for message in user.history(limit=100):
-                        if message.author == self.user:
-                            # if it starts with the same heading
-                            if message.content.startswith(heading):
-                                heading_exists = True
-                                break
-                            else:
-                                # check if there is a heading in the message
-                                if re.findall(r"\*{3}.+\*{3}", message.content):
-                                    break
-                                else:
-                                    heading_age += 1
-
-                    if heading_exists:
-                        await user.send(message_text)
-                    else:
-                        await user.send(
-                            heading + message_text,
-                        )
-
-                    database_controller.mark_notification_sent(notification.id)
-                except discord.errors.Forbidden as e:
-                    print(
-                        f"Could not send DM to {user.name}#{user.discriminator} ({user.id}) {e}, {type(e)}"
-                    )
-                    database_controller.set_user_preference(
-                        notification.recipient, "delivery_method", "discord_channel"
-                    )
-                    database_controller.send_notification(
-                        notification.recipient,
-                        "Your preferred delivery method has been set to Discord channel because you could not receive DMs from mutual server members.",
-                    )
-            else:
                 # get channel that has name "notification_delivery_{user_id}"
                 channel_name = f"notification_delivery_{notification.recipient}"
                 channel = discord.utils.get(self.get_all_channels(), name=channel_name)
@@ -186,6 +150,45 @@ You can also checkout my [personal website](<https://maxstuff.net>) or my [YouTu
                         heading + message_text,
                     )
                 database_controller.mark_notification_sent(notification.id)
+            else:
+                user = await self.fetch_user(notification.recipient)
+                try:
+                    heading_exists = False
+                    heading_age = 0
+                    heading = "***" + notification.heading + "***\n"
+                    # check the previous messages to see if they have the same heading
+                    async for message in user.history(limit=100):
+                        if message.author == self.user:
+                            # if it starts with the same heading
+                            if message.content.startswith(heading):
+                                heading_exists = True
+                                break
+                            else:
+                                # check if there is a heading in the message
+                                if re.findall(r"\*{3}.+\*{3}", message.content):
+                                    break
+                                else:
+                                    heading_age += 1
+
+                    if heading_exists:
+                        await user.send(message_text)
+                    else:
+                        await user.send(
+                            heading + message_text,
+                        )
+
+                    database_controller.mark_notification_sent(notification.id)
+                except discord.errors.Forbidden as e:
+                    print(
+                        f"Could not send DM to {user.name}#{user.discriminator} ({user.id}) {e}, {type(e)}"
+                    )
+                    database_controller.set_user_preference(
+                        notification.recipient, "delivery_method", "discord_channel"
+                    )
+                    database_controller.send_notification(
+                        notification.recipient,
+                        "Your preferred delivery method has been set to Discord channel because you could not receive DMs from mutual server members. If you want to use DMs make sure to enable DMs from server members in the server settings, then change the setting in #signup",
+                    )
 
         self.send_alerts_lock.release()
 
@@ -355,7 +358,7 @@ class Prompt(discord.ui.View):
             "This is a test alert.",
         )
         await interaction.response.send_message(
-            "Test alert sent. If you do not receive it, check that you can receive DMs from mutual server members.",
+            "Test alert sent. If you do not receive it, check that you can receive DMs from server members.",
             view=Prompt(),
             ephemeral=True,
         )
