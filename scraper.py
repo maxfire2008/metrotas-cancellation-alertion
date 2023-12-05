@@ -67,7 +67,7 @@ def process_article(date, title, url, description, location):
                         alert.user_id,
                         text,
                         f"{title} - {location} {date} {url}",
-                        hash=repr((url, text)),
+                        hash=repr((url, text, alert.user_id)),
                     )
                     print("scraper.py: SENT NOTIFICATION FOR", alert)
                 except sqlalchemy.exc.IntegrityError as error:
