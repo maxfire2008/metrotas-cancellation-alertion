@@ -8,7 +8,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR FAILURE OR OTHER DEALING
 IN THE SOFTWARE.
 
 ## Joining
-Join the [MetroTas Cancellation Alerts](https://discord.gg/AEv4gYphDF) Discord guild (server) to signup for alerts.
+Join the [MetroTas Cancellation Alerts](https://discord.gg/DmQuNWcrwT) Discord guild (server) to signup for alerts.
 
 ## Creating alerts
 To create an alert, use the "Create Alert" button in the Discord server. You can leave fields blank to not use it for matches. i.e. if you want to match *all* X42 buses, don't fill in the time or direction.
